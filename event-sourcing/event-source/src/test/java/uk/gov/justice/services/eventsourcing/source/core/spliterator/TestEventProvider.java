@@ -37,7 +37,7 @@ public class TestEventProvider implements EventProvider {
 
         rangeClosed(1, numberOfStreams).forEach(value -> streamIds.add(randomUUID()));
 
-        rangeClosed(1, numberOfNames).forEach(value -> names.add(RandomStringUtils.randomAlphabetic(10)));
+        rangeClosed(1, numberOfNames).forEach(value -> names.add("test." + RandomStringUtils.randomAlphabetic(10)));
     }
 
     public Stream<JsonEnvelope> getAllEventsFrom(final long position, final int pageSize) {

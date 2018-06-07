@@ -44,7 +44,6 @@ import uk.gov.justice.services.core.interceptor.InterceptorChainEntryProvider;
 import uk.gov.justice.services.core.interceptor.InterceptorChainObserver;
 import uk.gov.justice.services.core.interceptor.InterceptorChainProcessor;
 import uk.gov.justice.services.core.interceptor.InterceptorChainProcessorProducer;
-import uk.gov.justice.services.core.interceptor.InterceptorContext;
 import uk.gov.justice.services.core.json.BackwardsCompatibleJsonSchemaValidator;
 import uk.gov.justice.services.core.json.DefaultFileSystemUrlResolverStrategy;
 import uk.gov.justice.services.core.json.FileBasedJsonSchemaValidator;
@@ -73,11 +72,8 @@ import uk.gov.justice.services.messaging.logging.DefaultTraceLogger;
 import uk.gov.justice.services.test.utils.common.envelope.TestEnvelopeRecorder;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
@@ -214,28 +210,18 @@ public class SpliteratorEventBufferIT {
     }
 
     @Test
-    public void shouldAllowUnsupportedEventThroughBufferAndFilterOutAfterwards() throws Exception {
+    public void shouldProcessEnvelopesInParallel() throws Exception {
 
-        final TestEventProvider eventProvider = new TestEventProvider(1, 5, 10);
-        final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, 1, 10, 10);
+        final TestEventProvider eventProvider = new TestEventProvider(10, 5, 100);
+        final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, 1, 100, 10);
 
-        int counter = 0;
-        while (eventPageChunker.hasNext()) {
-
-            for (final JsonEnvelope jsonEnvelope : eventPageChunker.nextStream()) {
-                interceptorChainProcessor.process(InterceptorContext.interceptorContextWithInput(jsonEnvelope));
-                counter++;
-            }
-        }
-
-//        parallelContainerStreamConsumer.stream(eventPageChunker, interceptorChainProcessor);
+        parallelContainerStreamConsumer.stream(eventPageChunker, interceptorChainProcessor);
 
         final List<JsonEnvelope> recordedEnvelopes = abcEventHandler.recordedEnvelopes();
 
-//        Thread.sleep(5000);
+        Thread.sleep(5000);
 
-        assertThat(counter, is(10));
-        assertThat(recordedEnvelopes.size(), is(10));
+        assertThat(recordedEnvelopes.size(), is(100));
     }
 
     @ServiceComponent(EVENT_LISTENER)
