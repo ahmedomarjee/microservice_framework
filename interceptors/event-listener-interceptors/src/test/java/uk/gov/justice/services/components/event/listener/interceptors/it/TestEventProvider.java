@@ -10,6 +10,7 @@ import uk.gov.justice.services.eventsourcing.source.core.spliterator.EventProvid
 import uk.gov.justice.services.messaging.JsonEnvelope;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -40,10 +41,14 @@ public class TestEventProvider implements EventProvider {
         rangeClosed(1, numberOfNames).forEach(value -> names.add(RandomStringUtils.randomAlphabetic(10)));
     }
 
-    public Stream<JsonEnvelope> getAllEventsFrom(final long position, final long pageSize) {
+    public Stream<JsonEnvelope> getAllEventsFrom(final long position, final int pageSize) {
 
-        final Iterator<Integer> randomStreamIdIndexes = new Random().ints(pageSize, 1, streamIds.size()).boxed().collect(toList()).iterator();
-        final Iterator<Integer> randomNamesIndexes = new Random().ints(pageSize, 1, names.size()).boxed().collect(toList()).iterator();
+        final Iterator<Integer> randomStreamIdIndexes = randomStreamIdIndexes(pageSize);
+
+        final Iterator<Integer> randomNamesIndexes = new Random()
+                .ints(pageSize, 1, names.size())
+                .boxed().collect(toList())
+                .iterator();
 
         final List<JsonEnvelope> jsonEnvelopes = new LinkedList<>();
 
@@ -77,7 +82,18 @@ public class TestEventProvider implements EventProvider {
         return jsonEnvelopes.stream();
     }
 
-    private long getEndInclusive(final long position, final long pageSize) {
+    private Iterator<Integer> randomStreamIdIndexes(final int pageSize) {
+        if (streamIds.size() > 1) {
+            return new Random().ints(pageSize, 0, streamIds.size())
+                    .boxed()
+                    .collect(toList())
+                    .iterator();
+        }
+
+        return Collections.nCopies(pageSize, 0).iterator();
+    }
+
+    private long getEndInclusive(final long position, final int pageSize) {
         final long endOfPage = position + pageSize;
 
         if (endOfPage > maximumEvents) {

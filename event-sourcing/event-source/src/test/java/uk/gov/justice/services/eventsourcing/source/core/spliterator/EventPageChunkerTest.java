@@ -1,6 +1,5 @@
 package uk.gov.justice.services.eventsourcing.source.core.spliterator;
 
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -9,8 +8,6 @@ import uk.gov.justice.services.messaging.JsonEnvelope;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -40,19 +37,20 @@ public class EventPageChunkerTest {
         final TestEventProvider eventProvider = new TestEventProvider(1, 5, 150);
         final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, 1, 150, 100);
 
+        long position = 1L;
+
         while (eventPageChunker.hasNext()) {
-            final Iterator<JsonEnvelope> jsonEnvelopeIterator = eventPageChunker.nextStream().iterator();
+            final List<JsonEnvelope> jsonEnvelopes = eventPageChunker.nextStream();
+            final UUID streamId = jsonEnvelopes.get(0).metadata().streamId().get();
+            final Iterator<JsonEnvelope> jsonEnvelopeIterator = jsonEnvelopes.iterator();
 
-            final JsonEnvelope startEnvelope = jsonEnvelopeIterator.next();
-
-            final UUID streamId = startEnvelope.metadata().streamId().get();
-            long position = startEnvelope.metadata().position().get();
-
-            while (jsonEnvelopeIterator.hasNext()){
+            while (jsonEnvelopeIterator.hasNext()) {
                 final JsonEnvelope jsonEnvelope = jsonEnvelopeIterator.next();
+                final UUID actualStreamId = jsonEnvelope.metadata().streamId().get();
+                final Long actualPosition = jsonEnvelope.metadata().position().get();
 
-                assertThat(jsonEnvelope.metadata().streamId().get(), is(streamId));
-                assertThat(jsonEnvelope.metadata().position().get(), is(++position));
+                assertThat(actualStreamId, is(streamId));
+                assertThat(actualPosition, is(position++));
             }
         }
     }

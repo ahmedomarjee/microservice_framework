@@ -9,6 +9,7 @@ import static uk.gov.justice.services.test.utils.core.messaging.MetadataBuilderF
 import uk.gov.justice.services.messaging.JsonEnvelope;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -39,7 +40,7 @@ public class TestEventProvider implements EventProvider {
         rangeClosed(1, numberOfNames).forEach(value -> names.add(RandomStringUtils.randomAlphabetic(10)));
     }
 
-    public Stream<JsonEnvelope> getAllEventsFrom(final long position, final long pageSize) {
+    public Stream<JsonEnvelope> getAllEventsFrom(final long position, final int pageSize) {
 
         final Iterator<Integer> randomStreamIdIndexes = randomStreamIdIndexes(pageSize);
 
@@ -80,14 +81,18 @@ public class TestEventProvider implements EventProvider {
         return jsonEnvelopes.stream();
     }
 
-    private Iterator<Integer> randomStreamIdIndexes(final long pageSize) {
-        return new Random().ints(pageSize, 1, streamIds.size())
-                .boxed()
-                .collect(toList())
-                .iterator();
+    private Iterator<Integer> randomStreamIdIndexes(final int pageSize) {
+        if (streamIds.size() > 1) {
+            return new Random().ints(pageSize, 0, streamIds.size())
+                    .boxed()
+                    .collect(toList())
+                    .iterator();
+        }
+
+        return Collections.nCopies(pageSize, 0).iterator();
     }
 
-    private long getEndInclusive(final long position, final long pageSize) {
+    private long getEndInclusive(final long position, final int pageSize) {
         final long endOfPage = position + pageSize;
 
         if (endOfPage > maximumEvents) {

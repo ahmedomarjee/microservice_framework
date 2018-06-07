@@ -216,8 +216,8 @@ public class SpliteratorEventBufferIT {
     @Test
     public void shouldAllowUnsupportedEventThroughBufferAndFilterOutAfterwards() throws Exception {
 
-        final TestEventProvider eventProvider = new TestEventProvider(10, 5, 100);
-        final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, 1, 100, 5);
+        final TestEventProvider eventProvider = new TestEventProvider(1, 5, 10);
+        final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, 1, 10, 10);
 
         int counter = 0;
         while (eventPageChunker.hasNext()) {
@@ -234,8 +234,8 @@ public class SpliteratorEventBufferIT {
 
 //        Thread.sleep(5000);
 
-        assertThat(counter, is(100));
-        assertThat(recordedEnvelopes.size(), is(100));
+        assertThat(counter, is(10));
+        assertThat(recordedEnvelopes.size(), is(10));
     }
 
     @ServiceComponent(EVENT_LISTENER)

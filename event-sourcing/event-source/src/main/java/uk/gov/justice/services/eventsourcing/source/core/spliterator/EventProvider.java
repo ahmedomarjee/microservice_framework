@@ -6,5 +6,5 @@ import java.util.stream.Stream;
 
 public interface EventProvider {
 
-    Stream<JsonEnvelope> getAllEventsFrom(final long position, final long pageSize);
+    Stream<JsonEnvelope> getAllEventsFrom(final long position, final int pageSize);
 }
