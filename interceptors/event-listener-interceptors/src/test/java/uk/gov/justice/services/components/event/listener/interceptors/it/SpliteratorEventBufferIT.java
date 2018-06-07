@@ -214,14 +214,22 @@ public class SpliteratorEventBufferIT {
     @Test
     public void shouldProcessEnvelopesInParallel() throws Exception {
 
-        final int numberOfEventsToProcess = 10_000;
+        final int numberOfEventsToProcess = 100;
 
         final int numberOfStreams = 10;
         final int numberOfEventNames = 5;
-        final int pageSize = 1000;
+        final int pageSize = 10;
         final int startPosition = 1;
 
-        final TestEventProvider eventProvider = new TestEventProvider(numberOfStreams, numberOfEventNames, numberOfEventsToProcess);
+        final EventFactory eventFactory = new EventFactory(
+                numberOfStreams,
+                numberOfEventNames);
+
+        final List<JsonEnvelope> allEvents = eventFactory.generateEvents(numberOfEventsToProcess);
+
+        assertThat(allEvents.size(), is(numberOfEventsToProcess));
+
+        final TestEventProvider eventProvider = new TestEventProvider(allEvents);
         final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, startPosition, numberOfEventsToProcess, pageSize);
 
         parallelContainerStreamConsumer.stream(eventPageChunker, interceptorChainProcessor);
