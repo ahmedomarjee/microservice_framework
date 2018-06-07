@@ -70,9 +70,11 @@ import uk.gov.justice.services.messaging.jms.DefaultEnvelopeConverter;
 import uk.gov.justice.services.messaging.jms.DefaultJmsEnvelopeSender;
 import uk.gov.justice.services.messaging.logging.DefaultTraceLogger;
 import uk.gov.justice.services.test.utils.common.envelope.TestEnvelopeRecorder;
+import uk.gov.justice.services.test.utils.core.messaging.Poller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 import javax.annotation.Resource;
@@ -212,16 +214,30 @@ public class SpliteratorEventBufferIT {
     @Test
     public void shouldProcessEnvelopesInParallel() throws Exception {
 
-        final TestEventProvider eventProvider = new TestEventProvider(10, 5, 100);
-        final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, 1, 100, 10);
+        final int numberOfEventsToProcess = 10_000;
+
+        final int numberOfStreams = 10;
+        final int numberOfEventNames = 5;
+        final int pageSize = 1000;
+        final int startPosition = 1;
+
+        final TestEventProvider eventProvider = new TestEventProvider(numberOfStreams, numberOfEventNames, numberOfEventsToProcess);
+        final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, startPosition, numberOfEventsToProcess, pageSize);
 
         parallelContainerStreamConsumer.stream(eventPageChunker, interceptorChainProcessor);
 
-        final List<JsonEnvelope> recordedEnvelopes = abcEventHandler.recordedEnvelopes();
+        final Optional<List<JsonEnvelope>> recordedEnvelopes = new Poller(60, 1000).pollUntilFound(() -> {
+            final List<JsonEnvelope> jsonEnvelopes = abcEventHandler.recordedEnvelopes();
+            final int size = jsonEnvelopes.size();
 
-        Thread.sleep(5000);
+            if (size == numberOfEventsToProcess) {
+                return Optional.of(jsonEnvelopes);
+            }
 
-        assertThat(recordedEnvelopes.size(), is(100));
+            return Optional.empty();
+        });
+
+        assertThat(recordedEnvelopes.get().size(), is(numberOfEventsToProcess));
     }
 
     @ServiceComponent(EVENT_LISTENER)
@@ -230,7 +246,14 @@ public class SpliteratorEventBufferIT {
 
         @Handles("*")
         public void handle(JsonEnvelope envelope) {
-            record(envelope);
+
+            try {
+                Thread.sleep(5L);
+                record(envelope);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
         }
 
     }
