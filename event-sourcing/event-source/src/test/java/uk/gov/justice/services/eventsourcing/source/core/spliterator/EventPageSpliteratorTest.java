@@ -23,7 +23,12 @@ public class EventPageSpliteratorTest {
     @Test
     public void shouldProcessStreamSequentiallyButNotInOrder() {
 
-        final TestEventProvider eventProvider = new TestEventProvider(NUMBER_OF_STREAMS, NUMBER_OF_EVENT_NAMES, MAXIMUM_EVENTS);
+        final EventFactory eventFactory = new EventFactory(
+                NUMBER_OF_STREAMS,
+                NUMBER_OF_EVENT_NAMES);
+
+        final List<JsonEnvelope> allEvents = eventFactory.generateEvents(MAXIMUM_EVENTS);
+        final TestEventProvider eventProvider = new TestEventProvider(allEvents);
         final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, FIRST_POSITION, MAXIMUM_EVENTS, PAGE_SIZE);
 
         final EventPageSpliterator eventPageSpliterator = new EventPageSpliterator(eventPageChunker, eventPageChunker.nextStream());
@@ -44,7 +49,12 @@ public class EventPageSpliteratorTest {
     @Test
     public void shouldProcessStreamInParallel() {
 
-        final TestEventProvider eventProvider = new TestEventProvider(NUMBER_OF_STREAMS, NUMBER_OF_EVENT_NAMES, MAXIMUM_EVENTS);
+        final EventFactory eventFactory = new EventFactory(
+                NUMBER_OF_STREAMS,
+                NUMBER_OF_EVENT_NAMES);
+
+        final List<JsonEnvelope> allEvents = eventFactory.generateEvents(MAXIMUM_EVENTS);
+        final TestEventProvider eventProvider = new TestEventProvider(allEvents);
         final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, FIRST_POSITION, MAXIMUM_EVENTS, PAGE_SIZE);
 
         final EventPageSpliterator eventPageSpliterator = new EventPageSpliterator(eventPageChunker, eventPageChunker.nextStream());

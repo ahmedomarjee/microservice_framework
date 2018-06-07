@@ -205,10 +205,18 @@ public class SpliteratorEventBufferIT {
 
     @Configuration
     public Properties configuration() {
-        return OpenEjbConfigurationBuilder.createOpenEjbConfigurationBuilder()
+        final Properties properties = OpenEjbConfigurationBuilder.createOpenEjbConfigurationBuilder()
                 .addInitialContext()
                 .addh2ViewStore()
                 .build();
+
+        properties.put("concurrent/es", "new://Resource?type=ManagedExecutorService");
+        properties.put("concurrent/es.core", "25");
+        properties.put("concurrent/es.max", "25");
+        properties.put("concurrent/es.keepAlive", "4 minutes");
+        properties.put("concurrent/es.queue", "100000");
+
+        return properties;
     }
 
     @Test

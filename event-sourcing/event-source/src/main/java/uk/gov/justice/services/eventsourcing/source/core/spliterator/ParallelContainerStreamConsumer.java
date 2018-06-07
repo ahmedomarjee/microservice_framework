@@ -6,7 +6,6 @@ import uk.gov.justice.services.messaging.JsonEnvelope;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -22,7 +21,7 @@ public class ParallelContainerStreamConsumer implements ManagedTaskListener {
     @Inject
     Logger logger;
 
-    @Resource
+    @Resource(name = "concurrent/es")
     ManagedExecutorService managedExecutorService;
 
     private Deque<Future<List<Optional<JsonEnvelope>>>> outstandingTasks = new LinkedBlockingDeque<>();

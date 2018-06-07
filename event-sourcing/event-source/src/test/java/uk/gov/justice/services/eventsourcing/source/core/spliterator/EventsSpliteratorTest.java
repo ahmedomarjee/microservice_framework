@@ -23,7 +23,12 @@ public class EventsSpliteratorTest {
     @Test
     public void shouldProduceListOfJsonEnvelopesOfGivenPageSize() {
 
-        final TestEventProvider eventProvider = new TestEventProvider(10, 5, 50);
+        final EventFactory eventFactory = new EventFactory(
+                10,
+                5);
+
+        final List<JsonEnvelope> allEvents = eventFactory.generateEvents(50);
+        final TestEventProvider eventProvider = new TestEventProvider(allEvents);
 
         final List<JsonEnvelope> jsonEnvelopes = eventProvider.getAllEventsFrom(1, 50).collect(toList());
 
@@ -35,19 +40,30 @@ public class EventsSpliteratorTest {
     @Test
     public void shouldProduceListOfJsonEnvelopesOfGivenPageSizeButLimitedToMaximumEvents() {
 
-        final TestEventProvider eventProvider = new TestEventProvider(10, 5, 20);
+        final EventFactory eventFactory = new EventFactory(
+                10,
+                5);
+
+        final List<JsonEnvelope> allEvents = eventFactory.generateEvents(20);
+        final TestEventProvider eventProvider = new TestEventProvider(allEvents);
 
         final List<JsonEnvelope> jsonEnvelopes = eventProvider.getAllEventsFrom(1, 50).collect(toList());
 
-        assertThat(jsonEnvelopes.size(), is(20));
-        assertThat(jsonEnvelopes.get(0).metadata().position(), is(Optional.of(1L)));
-        assertThat(jsonEnvelopes.get(19).metadata().position(), is(Optional.of(20L)));
+        assertThat(allEvents.size(), is(20));
+        assertThat(allEvents.get(0).metadata().position(), is(Optional.of(1L)));
+        assertThat(allEvents.get(19).metadata().position(), is(Optional.of(20L)));
     }
 
     @Test
     public void shouldSpliterateStreamOfJsonEnvelopes() {
 
-        final TestEventProvider eventProvider = new TestEventProvider(10, 5, 150);
+        final EventFactory eventFactory = new EventFactory(
+                10,
+                5);
+
+        final List<JsonEnvelope> allEvents = eventFactory.generateEvents(150);
+        final TestEventProvider eventProvider = new TestEventProvider(allEvents);
+
         final EventSpliterator eventSpliterator = new EventSpliterator(eventProvider, 1, 150);
 
         final List<JsonEnvelope> jsonEnvelopes = stream(eventSpliterator, false).collect(toList());
@@ -60,7 +76,12 @@ public class EventsSpliteratorTest {
     @Test
     public void shouldChunkStreamAccordingToStreamId() {
 
-        final TestEventProvider eventProvider = new TestEventProvider(10, 5, 1000);
+        final EventFactory eventFactory = new EventFactory(
+                10,
+                5);
+
+        final List<JsonEnvelope> allEvents = eventFactory.generateEvents(1000);
+        final TestEventProvider eventProvider = new TestEventProvider(allEvents);
 
         final Map<UUID, Stream.Builder<JsonEnvelope>> uuidStreamMap = new HashMap<>();
 

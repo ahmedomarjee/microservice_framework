@@ -16,7 +16,12 @@ public class EventPageChunkerTest {
     @Test
     public void shouldSplitPagesOfEventsByStreamId() {
 
-        final TestEventProvider eventProvider = new TestEventProvider(10, 5, 150);
+        final EventFactory eventFactory = new EventFactory(
+                10,
+                5);
+
+        final List<JsonEnvelope> allEvents = eventFactory.generateEvents(150);
+        final TestEventProvider eventProvider = new TestEventProvider(allEvents);
         final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, 1, 150, 100);
 
         long accumulatedSize = 0;
@@ -34,7 +39,12 @@ public class EventPageChunkerTest {
     @Test
     public void shouldReturnChunkOfSameStreamIdAndInSequenceVersions() {
 
-        final TestEventProvider eventProvider = new TestEventProvider(1, 5, 150);
+        final EventFactory eventFactory = new EventFactory(
+                1,
+                5);
+
+        final List<JsonEnvelope> allEvents = eventFactory.generateEvents(150);
+        final TestEventProvider eventProvider = new TestEventProvider(allEvents);
         final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, 1, 150, 100);
 
         long position = 1L;
