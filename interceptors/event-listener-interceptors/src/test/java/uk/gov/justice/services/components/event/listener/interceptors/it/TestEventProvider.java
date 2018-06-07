@@ -1,4 +1,4 @@
-package uk.gov.justice.services.eventsourcing.source.core.spliterator;
+package uk.gov.justice.services.components.event.listener.interceptors.it;
 
 import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toList;
@@ -6,6 +6,7 @@ import static java.util.stream.IntStream.rangeClosed;
 import static uk.gov.justice.services.test.utils.core.messaging.JsonEnvelopeBuilder.envelope;
 import static uk.gov.justice.services.test.utils.core.messaging.MetadataBuilderFactory.metadataWithRandomUUID;
 
+import uk.gov.justice.services.eventsourcing.source.core.spliterator.EventProvider;
 import uk.gov.justice.services.messaging.JsonEnvelope;
 
 import java.util.ArrayList;
@@ -41,12 +42,8 @@ public class TestEventProvider implements EventProvider {
 
     public Stream<JsonEnvelope> getAllEventsFrom(final long position, final long pageSize) {
 
-        final Iterator<Integer> randomStreamIdIndexes = randomStreamIdIndexes(pageSize);
-
-        final Iterator<Integer> randomNamesIndexes = new Random()
-                .ints(pageSize, 1, names.size())
-                .boxed().collect(toList())
-                .iterator();
+        final Iterator<Integer> randomStreamIdIndexes = new Random().ints(pageSize, 1, streamIds.size()).boxed().collect(toList()).iterator();
+        final Iterator<Integer> randomNamesIndexes = new Random().ints(pageSize, 1, names.size()).boxed().collect(toList()).iterator();
 
         final List<JsonEnvelope> jsonEnvelopes = new LinkedList<>();
 
@@ -78,13 +75,6 @@ public class TestEventProvider implements EventProvider {
         );
 
         return jsonEnvelopes.stream();
-    }
-
-    private Iterator<Integer> randomStreamIdIndexes(final long pageSize) {
-        return new Random().ints(pageSize, 1, streamIds.size())
-                .boxed()
-                .collect(toList())
-                .iterator();
     }
 
     private long getEndInclusive(final long position, final long pageSize) {

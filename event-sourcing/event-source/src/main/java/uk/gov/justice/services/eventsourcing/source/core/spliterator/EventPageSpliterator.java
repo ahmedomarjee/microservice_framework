@@ -3,6 +3,7 @@ package uk.gov.justice.services.eventsourcing.source.core.spliterator;
 import uk.gov.justice.services.messaging.JsonEnvelope;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
@@ -13,7 +14,7 @@ public class EventPageSpliterator extends Spliterators.AbstractSpliterator<JsonE
     private final EventPageChunker eventPageChunker;
     private Iterator<JsonEnvelope> jsonEnvelopeIterator;
 
-    public EventPageSpliterator(final EventPageChunker eventPageChunker, final Stream<JsonEnvelope> jsonEnvelopeStream) {
+    public EventPageSpliterator(final EventPageChunker eventPageChunker, final List<JsonEnvelope> jsonEnvelopeStream) {
         super(Long.MAX_VALUE, ORDERED);
         this.eventPageChunker = eventPageChunker;
         jsonEnvelopeIterator = jsonEnvelopeStream.iterator();

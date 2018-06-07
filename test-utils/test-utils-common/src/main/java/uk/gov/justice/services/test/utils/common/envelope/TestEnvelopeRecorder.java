@@ -24,7 +24,7 @@ public abstract class TestEnvelopeRecorder {
         return recordedEnvelopes;
     }
 
-    protected void record(final JsonEnvelope envelope) {
+    protected synchronized void record(final JsonEnvelope envelope) {
         recordedEnvelopes.add(envelope);
     }
 
