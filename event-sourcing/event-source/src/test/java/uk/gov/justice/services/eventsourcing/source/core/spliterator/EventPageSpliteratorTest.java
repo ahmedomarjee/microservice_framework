@@ -9,8 +9,10 @@ import uk.gov.justice.services.messaging.JsonEnvelope;
 
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class EventPageSpliteratorTest {
 
     private static final int NUMBER_OF_STREAMS = 100;
@@ -29,9 +31,9 @@ public class EventPageSpliteratorTest {
 
         final List<JsonEnvelope> allEvents = eventFactory.generateEvents(MAXIMUM_EVENTS);
         final TestEventProvider eventProvider = new TestEventProvider(allEvents);
-        final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, FIRST_POSITION, MAXIMUM_EVENTS, PAGE_SIZE);
+        final PagedEventStream pagedEventStream = new PagedEventStream(eventProvider, FIRST_POSITION, MAXIMUM_EVENTS, PAGE_SIZE);
 
-        final EventPageSpliterator eventPageSpliterator = new EventPageSpliterator(eventPageChunker, eventPageChunker.nextStream());
+        final EventPageSpliterator eventPageSpliterator = new EventPageSpliterator(pagedEventStream, pagedEventStream.nextStream());
 
         final long start = System.currentTimeMillis();
 
@@ -55,9 +57,9 @@ public class EventPageSpliteratorTest {
 
         final List<JsonEnvelope> allEvents = eventFactory.generateEvents(MAXIMUM_EVENTS);
         final TestEventProvider eventProvider = new TestEventProvider(allEvents);
-        final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, FIRST_POSITION, MAXIMUM_EVENTS, PAGE_SIZE);
+        final PagedEventStream pagedEventStream = new PagedEventStream(eventProvider, FIRST_POSITION, MAXIMUM_EVENTS, PAGE_SIZE);
 
-        final EventPageSpliterator eventPageSpliterator = new EventPageSpliterator(eventPageChunker, eventPageChunker.nextStream());
+        final EventPageSpliterator eventPageSpliterator = new EventPageSpliterator(pagedEventStream, pagedEventStream.nextStream());
 
         final long start = System.currentTimeMillis();
 

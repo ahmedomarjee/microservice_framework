@@ -21,44 +21,10 @@ import org.junit.Test;
 public class EventsSpliteratorTest {
 
     @Test
-    public void shouldProduceListOfJsonEnvelopesOfGivenPageSize() {
-
-        final EventFactory eventFactory = new EventFactory(
-                10,
-                5);
-
-        final List<JsonEnvelope> allEvents = eventFactory.generateEvents(50);
-        final TestEventProvider eventProvider = new TestEventProvider(allEvents);
-
-        final List<JsonEnvelope> jsonEnvelopes = eventProvider.getAllEventsFrom(1, 50).collect(toList());
-
-        assertThat(jsonEnvelopes.size(), is(50));
-        assertThat(jsonEnvelopes.get(0).metadata().position(), is(Optional.of(1L)));
-        assertThat(jsonEnvelopes.get(49).metadata().position(), is(Optional.of(50L)));
-    }
-
-    @Test
-    public void shouldProduceListOfJsonEnvelopesOfGivenPageSizeButLimitedToMaximumEvents() {
-
-        final EventFactory eventFactory = new EventFactory(
-                10,
-                5);
-
-        final List<JsonEnvelope> allEvents = eventFactory.generateEvents(20);
-        final TestEventProvider eventProvider = new TestEventProvider(allEvents);
-
-        final List<JsonEnvelope> jsonEnvelopes = eventProvider.getAllEventsFrom(1, 50).collect(toList());
-
-        assertThat(allEvents.size(), is(20));
-        assertThat(allEvents.get(0).metadata().position(), is(Optional.of(1L)));
-        assertThat(allEvents.get(19).metadata().position(), is(Optional.of(20L)));
-    }
-
-    @Test
     public void shouldSpliterateStreamOfJsonEnvelopes() {
 
         final EventFactory eventFactory = new EventFactory(
-                10,
+                1,
                 5);
 
         final List<JsonEnvelope> allEvents = eventFactory.generateEvents(150);

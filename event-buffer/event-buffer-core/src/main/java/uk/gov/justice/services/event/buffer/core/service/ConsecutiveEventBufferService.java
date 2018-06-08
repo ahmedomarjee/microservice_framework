@@ -44,6 +44,7 @@ public class ConsecutiveEventBufferService implements EventBufferService {
     @Inject
     private BufferInitialisationStrategy bufferInitialisationStrategy;
 
+    private final Object lockObject = new Object();
 
     /**
      * Takes an incoming event and returns a stream of json envelopes. If the event is not
@@ -64,26 +65,30 @@ public class ConsecutiveEventBufferService implements EventBufferService {
         final long incomingEventVersion = versionOf(incomingEvent);
         final String source = getSource(incomingEvent);
 
-        final long currentVersion = bufferInitialisationStrategy.initialiseBuffer(streamId, source);
+        synchronized (lockObject) {
 
-        if (incomingEventObsolete(incomingEventVersion, currentVersion)) {
-            logger.warn("Message : {} is an obsolete version", incomingEvent);
-            return Stream.empty();
+            final long currentVersion = bufferInitialisationStrategy.initialiseBuffer(streamId, source);
 
-        } else if (incomingEventNotInOrder(incomingEventVersion, currentVersion)) {
-            logger.trace("Message : {} is not consecutive, adding to buffer", incomingEvent);
-            addToBuffer(incomingEvent, streamId, incomingEventVersion);
-            return Stream.empty();
+            if (incomingEventObsolete(incomingEventVersion, currentVersion)) {
+                logger.warn("Message : {} is an obsolete version", incomingEvent);
+                return Stream.empty();
 
-        } else {
-            logger.trace("Message : {} version is valid sending stream to dispatcher", incomingEvent);
-            streamStatusRepository.update(new StreamStatus(streamId, incomingEventVersion, source));
-            return bufferedEvents(streamId, incomingEvent, incomingEventVersion);
+            } else if (incomingEventNotInOrder(incomingEventVersion, currentVersion)) {
+                logger.trace("Message : {} is not consecutive, adding to buffer", incomingEvent);
+                addToBuffer(incomingEvent, streamId, incomingEventVersion);
+                return Stream.empty();
+
+            } else {
+                logger.trace("Message : {} version {} is valid sending stream to dispatcher", incomingEvent, incomingEventVersion);
+                streamStatusRepository.update(new StreamStatus(streamId, incomingEventVersion, source));
+                return bufferedEvents(streamId, incomingEvent, incomingEventVersion);
+            }
+
         }
     }
 
     private long versionOf(final JsonEnvelope event) {
-        final long incomingEventVersion = event.metadata().version().orElseThrow(() -> new IllegalStateException("Event must have a version"));
+        final long incomingEventVersion = event.metadata().position().orElseThrow(() -> new IllegalStateException("Event must have a version"));
         if (smallerThanInitial(incomingEventVersion)) {
             throw new IllegalStateException("Version cannot be zero");
         }

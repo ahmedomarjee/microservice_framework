@@ -8,8 +8,8 @@ import static uk.gov.justice.services.test.utils.core.messaging.MetadataBuilderF
 
 import uk.gov.justice.services.messaging.JsonEnvelope;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -17,7 +17,6 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class EventFactory {
-
 
     private final int numberOfStreams;
     private final int numberOfUniqueEventNames;
@@ -35,7 +34,7 @@ public class EventFactory {
         final List<UUID> streamIds = generateStreamIds();
         final List<String> eventNames = generateEventNames();
 
-        streamIds.forEach(streamId -> eventsByStream.put(streamId, new LinkedList<>()));
+        streamIds.forEach(streamId -> eventsByStream.put(streamId, new ArrayList<>()));
 
         return IntStream.range(0, numberOfEventsToCreate)
                 .mapToObj(index -> generateEnvelope(streamIds, eventNames))

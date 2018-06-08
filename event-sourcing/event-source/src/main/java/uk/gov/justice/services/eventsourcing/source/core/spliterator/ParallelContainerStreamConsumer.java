@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
@@ -21,44 +22,58 @@ public class ParallelContainerStreamConsumer implements ManagedTaskListener {
     @Inject
     Logger logger;
 
-    @Resource(name = "concurrent/es")
+    @Resource(name = "concurrent/managedExecutorService")
     ManagedExecutorService managedExecutorService;
 
     private Deque<Future<List<Optional<JsonEnvelope>>>> outstandingTasks = new LinkedBlockingDeque<>();
 
-    public void stream(final EventPageChunker eventPageChunker,
+    public void stream(final Stream<Stream<JsonEnvelope>> jsonEnvelopeStreams,
                        final InterceptorChainProcessor interceptorChainProcessor) {
 
-        while (eventPageChunker.hasNext()) {
-            final PageDispatchTask pageDispatchTask = new PageDispatchTask(
-                    eventPageChunker.nextStream(),
-                    interceptorChainProcessor,
-                    this);
-
-            outstandingTasks.add(managedExecutorService.submit(pageDispatchTask));
+        try (final Stream<Stream<JsonEnvelope>> streamOfStreams = jsonEnvelopeStreams) {
+            streamOfStreams.forEach(jsonEnvelopeStream -> {
+                submitPageDispatchTask(interceptorChainProcessor, jsonEnvelopeStream);
+            });
         }
+    }
+
+    private void submitPageDispatchTask(final InterceptorChainProcessor interceptorChainProcessor, final Stream<JsonEnvelope> jsonEnvelopeStream) {
+        final PageDispatchTask pageDispatchTask = dispatch(
+                interceptorChainProcessor,
+                jsonEnvelopeStream);
+
+        outstandingTasks.add(managedExecutorService.submit(pageDispatchTask));
+    }
+
+    private PageDispatchTask dispatch(final InterceptorChainProcessor interceptorChainProcessor,
+                                      final Stream<JsonEnvelope> jsonEnvelopeStream) {
+
+        return new PageDispatchTask(
+                jsonEnvelopeStream,
+                interceptorChainProcessor,
+                this);
     }
 
     @Override
     public void taskSubmitted(final Future<?> future, final ManagedExecutorService executor, final Object task) {
-        logger.info("--------Submitted--------");
+        logger.debug("--------Submitted--------");
     }
 
     @Override
     public void taskAborted(final Future<?> future, final ManagedExecutorService executor, final Object task, final Throwable exception) {
-        logger.info("--------Aborted--------");
+        logger.error("--------Aborted--------", exception);
         boolean dispatchComplete = removeOutstandingTask(future);
     }
 
     @Override
     public void taskDone(final Future<?> future, final ManagedExecutorService executor, final Object task, final Throwable exception) {
-        logger.info("--------Done--------");
+        logger.debug("--------Done--------");
         boolean dispatchComplete = removeOutstandingTask(future);
     }
 
     @Override
     public void taskStarting(final Future<?> future, final ManagedExecutorService executor, final Object task) {
-        logger.info("--------Started--------");
+        logger.debug("--------Started--------");
     }
 
     private boolean removeOutstandingTask(final Future<?> dispatchTaskFuture) {

@@ -1,5 +1,7 @@
 package uk.gov.justice.services.components.event.listener.interceptors.it;
 
+import static java.lang.String.format;
+import static java.util.stream.StreamSupport.stream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static uk.gov.justice.services.core.annotation.Component.EVENT_LISTENER;
@@ -44,6 +46,7 @@ import uk.gov.justice.services.core.interceptor.InterceptorChainEntryProvider;
 import uk.gov.justice.services.core.interceptor.InterceptorChainObserver;
 import uk.gov.justice.services.core.interceptor.InterceptorChainProcessor;
 import uk.gov.justice.services.core.interceptor.InterceptorChainProcessorProducer;
+import uk.gov.justice.services.core.interceptor.InterceptorContext;
 import uk.gov.justice.services.core.json.BackwardsCompatibleJsonSchemaValidator;
 import uk.gov.justice.services.core.json.DefaultFileSystemUrlResolverStrategy;
 import uk.gov.justice.services.core.json.FileBasedJsonSchemaValidator;
@@ -60,7 +63,8 @@ import uk.gov.justice.services.core.mapping.SchemaIdMappingObserver;
 import uk.gov.justice.services.core.requester.RequesterProducer;
 import uk.gov.justice.services.core.sender.SenderProducer;
 import uk.gov.justice.services.event.buffer.core.service.ConsecutiveEventBufferService;
-import uk.gov.justice.services.eventsourcing.source.core.spliterator.EventPageChunker;
+import uk.gov.justice.services.eventsourcing.source.core.spliterator.PagedEventStream;
+import uk.gov.justice.services.eventsourcing.source.core.spliterator.PagedEventStreamSpliterator;
 import uk.gov.justice.services.eventsourcing.source.core.spliterator.ParallelContainerStreamConsumer;
 import uk.gov.justice.services.jdbc.persistence.JdbcRepositoryHelper;
 import uk.gov.justice.services.jdbc.persistence.ViewStoreJdbcDataSourceProvider;
@@ -210,11 +214,11 @@ public class SpliteratorEventBufferIT {
                 .addh2ViewStore()
                 .build();
 
-        properties.put("concurrent/es", "new://Resource?type=ManagedExecutorService");
-        properties.put("concurrent/es.core", "25");
-        properties.put("concurrent/es.max", "25");
-        properties.put("concurrent/es.keepAlive", "4 minutes");
-        properties.put("concurrent/es.queue", "100000");
+        properties.put("concurrent/managedExecutorService", "new://Resource?type=ManagedExecutorService");
+        properties.put("concurrent/managedExecutorService.core", "5");
+        properties.put("concurrent/managedExecutorService.max", "10");
+        properties.put("concurrent/managedExecutorService.keepAlive", "4 minutes");
+        properties.put("concurrent/managedExecutorService.queue", "100000");
 
         return properties;
     }
@@ -222,11 +226,11 @@ public class SpliteratorEventBufferIT {
     @Test
     public void shouldProcessEnvelopesInParallel() throws Exception {
 
-        final int numberOfEventsToProcess = 100;
+        final int numberOfEventsToProcess = 1_000;
 
-        final int numberOfStreams = 10;
+        final int numberOfStreams = 100;
         final int numberOfEventNames = 5;
-        final int pageSize = 10;
+        final int pageSize = 100;
         final int startPosition = 1;
 
         final EventFactory eventFactory = new EventFactory(
@@ -238,22 +242,65 @@ public class SpliteratorEventBufferIT {
         assertThat(allEvents.size(), is(numberOfEventsToProcess));
 
         final TestEventProvider eventProvider = new TestEventProvider(allEvents);
-        final EventPageChunker eventPageChunker = new EventPageChunker(eventProvider, startPosition, numberOfEventsToProcess, pageSize);
+        final PagedEventStream pagedEventStream = new PagedEventStream(eventProvider, startPosition, numberOfEventsToProcess, pageSize);
+        final PagedEventStreamSpliterator pagedEventStreamSpliterator = new PagedEventStreamSpliterator(pagedEventStream);
 
-        parallelContainerStreamConsumer.stream(eventPageChunker, interceptorChainProcessor);
+        final long startTime = System.currentTimeMillis();
 
-        final Optional<List<JsonEnvelope>> recordedEnvelopes = new Poller(60, 1000).pollUntilFound(() -> {
+        parallelContainerStreamConsumer.stream(
+                stream(pagedEventStreamSpliterator, false),
+                interceptorChainProcessor);
+
+        final Optional<List<JsonEnvelope>> recordedEnvelopes = pollUntilAllEventsAreHandled(numberOfEventsToProcess);
+
+        final long completeTime = System.currentTimeMillis();
+
+        System.out.println(format("%d events processed in %d seconds", numberOfEventsToProcess, (completeTime - startTime) / 1000));
+
+        assertThat(recordedEnvelopes.get().size(), is(numberOfEventsToProcess));
+    }
+
+    @Test
+    public void shouldProcessEnvelopesInSequence() throws Exception {
+
+        final int numberOfEventsToProcess = 1_000;
+
+        final int numberOfStreams = 100;
+        final int numberOfEventNames = 5;
+
+        final EventFactory eventFactory = new EventFactory(
+                numberOfStreams,
+                numberOfEventNames);
+
+        final List<JsonEnvelope> allEvents = eventFactory.generateEvents(numberOfEventsToProcess);
+
+        assertThat(allEvents.size(), is(numberOfEventsToProcess));
+
+        final long startTime = System.currentTimeMillis();
+
+        for (JsonEnvelope jsonEnvelope : allEvents) {
+            interceptorChainProcessor.process(InterceptorContext.interceptorContextWithInput(jsonEnvelope));
+        }
+
+        final Optional<List<JsonEnvelope>> recordedEnvelopes = pollUntilAllEventsAreHandled(numberOfEventsToProcess);
+
+        final long completeTime = System.currentTimeMillis();
+
+        System.out.println(format("%d events processed in %d seconds", numberOfEventsToProcess, (completeTime - startTime) / 1000));
+
+        assertThat(recordedEnvelopes.get().size(), is(numberOfEventsToProcess));
+    }
+
+    private Optional<List<JsonEnvelope>> pollUntilAllEventsAreHandled(final int numberOfEventsToProcess) {
+        return new Poller(120, 1000).pollUntilFound(() -> {
             final List<JsonEnvelope> jsonEnvelopes = abcEventHandler.recordedEnvelopes();
-            final int size = jsonEnvelopes.size();
 
-            if (size == numberOfEventsToProcess) {
+            if (jsonEnvelopes.size() == numberOfEventsToProcess) {
                 return Optional.of(jsonEnvelopes);
             }
 
             return Optional.empty();
         });
-
-        assertThat(recordedEnvelopes.get().size(), is(numberOfEventsToProcess));
     }
 
     @ServiceComponent(EVENT_LISTENER)

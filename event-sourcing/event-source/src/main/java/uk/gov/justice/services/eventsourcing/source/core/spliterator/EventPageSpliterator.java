@@ -3,7 +3,6 @@ package uk.gov.justice.services.eventsourcing.source.core.spliterator;
 import uk.gov.justice.services.messaging.JsonEnvelope;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
@@ -11,12 +10,13 @@ import java.util.stream.Stream;
 
 public class EventPageSpliterator extends Spliterators.AbstractSpliterator<JsonEnvelope> {
 
-    private final EventPageChunker eventPageChunker;
+    private final PagedEventStream pagedEventStream;
     private Iterator<JsonEnvelope> jsonEnvelopeIterator;
 
-    public EventPageSpliterator(final EventPageChunker eventPageChunker, final List<JsonEnvelope> jsonEnvelopeStream) {
+    public EventPageSpliterator(final PagedEventStream pagedEventStream,
+                                final Stream<JsonEnvelope> jsonEnvelopeStream) {
         super(Long.MAX_VALUE, ORDERED);
-        this.eventPageChunker = eventPageChunker;
+        this.pagedEventStream = pagedEventStream;
         jsonEnvelopeIterator = jsonEnvelopeStream.iterator();
     }
 
@@ -24,8 +24,8 @@ public class EventPageSpliterator extends Spliterators.AbstractSpliterator<JsonE
     public boolean tryAdvance(final Consumer<? super JsonEnvelope> action) {
 
         if (!jsonEnvelopeIterator.hasNext()) {
-            if (eventPageChunker.hasNext()) {
-                jsonEnvelopeIterator = eventPageChunker.nextStream().iterator();
+            if (pagedEventStream.hasNext()) {
+                jsonEnvelopeIterator = pagedEventStream.nextStream().iterator();
             } else {
                 return false;
             }
@@ -43,8 +43,8 @@ public class EventPageSpliterator extends Spliterators.AbstractSpliterator<JsonE
     @Override
     public Spliterator<JsonEnvelope> trySplit() {
 
-        if (eventPageChunker.hasNext()) {
-            return new EventPageSpliterator(eventPageChunker, eventPageChunker.nextStream());
+        if (pagedEventStream.hasNext()) {
+            return new EventPageSpliterator(pagedEventStream, pagedEventStream.nextStream());
         }
 
         return null;

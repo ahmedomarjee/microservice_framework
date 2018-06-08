@@ -2,32 +2,31 @@ package uk.gov.justice.services.eventsourcing.source.core.spliterator;
 
 import uk.gov.justice.services.messaging.JsonEnvelope;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-public class EventPageChunker {
+public class PagedEventStream {
 
-    private final Map<UUID, List<JsonEnvelope>> uuidStreamMap = new HashMap<>();
+    private final Map<UUID, Stream.Builder<JsonEnvelope>> uuidStreamMap = new HashMap<>();
     private final EventProvider eventProvider;
     private final int lastPosition;
     private int currentPosition;
     private final int pageSize;
 
-    public EventPageChunker(final EventProvider eventProvider, final int fromPosition, final int lastPosition, final int pageSize) {
+    public PagedEventStream(final EventProvider eventProvider,
+                            final int fromPosition,
+                            final int lastPosition,
+                            final int pageSize) {
         this.eventProvider = eventProvider;
         this.lastPosition = lastPosition;
         this.currentPosition = fromPosition;
         this.pageSize = pageSize;
     }
 
-    public synchronized List<JsonEnvelope> nextStream() {
+    public Stream<JsonEnvelope> nextStream() {
         if (uuidStreamMap.isEmpty()) {
             processPageOfEvents();
         }
@@ -36,13 +35,14 @@ public class EventPageChunker {
 
         if (keyIterator.hasNext()) {
             return uuidStreamMap
-                    .remove(keyIterator.next());
+                    .remove(keyIterator.next())
+                    .build();
         }
 
-        return Collections.emptyList();
+        return Stream.empty();
     }
 
-    public synchronized boolean hasNext() {
+    public boolean hasNext() {
         if (uuidStreamMap.isEmpty()) {
             processPageOfEvents();
         }
@@ -67,11 +67,10 @@ public class EventPageChunker {
         if (uuidStreamMap.containsKey(streamId)) {
             uuidStreamMap.get(streamId).add(jsonEnvelope);
         } else {
-            final List<JsonEnvelope> jsonEnvelopes = new LinkedList<>();
+            final Stream.Builder<JsonEnvelope> jsonEnvelopes = Stream.builder();
             jsonEnvelopes.add(jsonEnvelope);
 
             uuidStreamMap.putIfAbsent(streamId, jsonEnvelopes);
         }
     }
-
 }

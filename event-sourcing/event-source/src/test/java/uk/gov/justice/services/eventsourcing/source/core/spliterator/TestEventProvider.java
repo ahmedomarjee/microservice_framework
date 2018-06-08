@@ -2,7 +2,7 @@ package uk.gov.justice.services.eventsourcing.source.core.spliterator;
 
 import uk.gov.justice.services.messaging.JsonEnvelope;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -17,7 +17,7 @@ public class TestEventProvider implements EventProvider {
     public Stream<JsonEnvelope> getAllEventsFrom(final long position, final int pageSize) {
 
         final long listPosition = position - 1;
-        final List<JsonEnvelope> subList = new LinkedList<JsonEnvelope>();
+        final List<JsonEnvelope> subList = new ArrayList<>();
 
         for (int i = (int) listPosition; i < listPosition + pageSize; i++) {
             if (i == jsonEnvelopes.size()) {
