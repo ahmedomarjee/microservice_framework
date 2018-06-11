@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 @Priority(2)
 public class ConsecutiveEventBufferService implements EventBufferService {
 
+    private static final Object LOCK_OBJECT = new Object();
     private static final long INITIAL_VERSION = 1l;
 
     @Inject
@@ -44,7 +45,6 @@ public class ConsecutiveEventBufferService implements EventBufferService {
     @Inject
     private BufferInitialisationStrategy bufferInitialisationStrategy;
 
-    private final Object lockObject = new Object();
 
     /**
      * Takes an incoming event and returns a stream of json envelopes. If the event is not
@@ -65,7 +65,7 @@ public class ConsecutiveEventBufferService implements EventBufferService {
         final long incomingEventVersion = versionOf(incomingEvent);
         final String source = getSource(incomingEvent);
 
-        synchronized (lockObject) {
+        synchronized (LOCK_OBJECT) {
 
             final long currentVersion = bufferInitialisationStrategy.initialiseBuffer(streamId, source);
 
