@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <changeSet id="event-store-008" author="TechPod"
+               logicalFilePath="008-event-log-index-stream-id-and-sequence.changelog.xml">
+
+        <createIndex indexName="idx_stream_id_and_sequence"
+                     tableName="event_log">
+            <column name="stream_id" type="uuid"/>
+            <column name="sequence_id" type="BIGINT"/>
+        </createIndex>
+
+        <createIndex indexName="idx_stream_id"
+                     tableName="event_log">
+            <column name="stream_id" type="uuid"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex indexName="idx_stream_id_and_sequence"
+                       tableName="event_log"/>
+
+            <dropIndex indexName="idx_stream_id"
+                       tableName="event_log"/>
+        </rollback>
+
+    </changeSet>
+</databaseChangeLog>
