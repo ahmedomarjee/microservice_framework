@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 @Priority(2)
 public class ConsecutiveEventBufferService implements EventBufferService {
 
-    private static final Object LOCK_OBJECT = new Object();
     private static final long INITIAL_VERSION = 1l;
 
     @Inject
@@ -65,25 +64,21 @@ public class ConsecutiveEventBufferService implements EventBufferService {
         final long incomingEventVersion = versionOf(incomingEvent);
         final String source = getSource(incomingEvent);
 
-        synchronized (LOCK_OBJECT) {
+        final long currentVersion = bufferInitialisationStrategy.initialiseBuffer(streamId, source);
 
-            final long currentVersion = bufferInitialisationStrategy.initialiseBuffer(streamId, source);
+        if (incomingEventObsolete(incomingEventVersion, currentVersion)) {
+            logger.warn("Message : {} is an obsolete version", incomingEvent);
+            return Stream.empty();
 
-            if (incomingEventObsolete(incomingEventVersion, currentVersion)) {
-                logger.warn("Message : {} is an obsolete version", incomingEvent);
-                return Stream.empty();
+        } else if (incomingEventNotInOrder(incomingEventVersion, currentVersion)) {
+            logger.trace("Message : {} is not consecutive, adding to buffer", incomingEvent);
+            addToBuffer(incomingEvent, streamId, incomingEventVersion);
+            return Stream.empty();
 
-            } else if (incomingEventNotInOrder(incomingEventVersion, currentVersion)) {
-                logger.trace("Message : {} is not consecutive, adding to buffer", incomingEvent);
-                addToBuffer(incomingEvent, streamId, incomingEventVersion);
-                return Stream.empty();
-
-            } else {
-                logger.trace("Message : {} version {} is valid sending stream to dispatcher", incomingEvent, incomingEventVersion);
-                streamStatusRepository.update(new StreamStatus(streamId, incomingEventVersion, source));
-                return bufferedEvents(streamId, incomingEvent, incomingEventVersion);
-            }
-
+        } else {
+            logger.trace("Message : {} version {} is valid sending stream to dispatcher", incomingEvent, incomingEventVersion);
+            streamStatusRepository.update(new StreamStatus(streamId, incomingEventVersion, source));
+            return bufferedEvents(streamId, incomingEvent, incomingEventVersion);
         }
     }
 

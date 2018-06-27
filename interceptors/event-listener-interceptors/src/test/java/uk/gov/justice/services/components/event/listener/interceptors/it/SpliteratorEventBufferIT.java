@@ -14,7 +14,6 @@ import uk.gov.justice.services.common.converter.StringToJsonObjectConverter;
 import uk.gov.justice.services.common.converter.jackson.ObjectMapperProducer;
 import uk.gov.justice.services.common.util.UtcClock;
 import uk.gov.justice.services.components.event.listener.interceptors.EventBufferInterceptor;
-import uk.gov.justice.services.components.event.listener.interceptors.it.util.buffer.AnsiSQLBufferInitialisationStrategyProducer;
 import uk.gov.justice.services.components.event.listener.interceptors.it.util.repository.StreamBufferOpenEjbAwareJdbcRepository;
 import uk.gov.justice.services.components.event.listener.interceptors.it.util.repository.StreamStatusOpenEjbAwareJdbcRepository;
 import uk.gov.justice.services.core.accesscontrol.AccessControlFailureMessageGenerator;
@@ -39,7 +38,6 @@ import uk.gov.justice.services.core.envelope.MediaTypeProvider;
 import uk.gov.justice.services.core.enveloper.Enveloper;
 import uk.gov.justice.services.core.extension.BeanInstantiater;
 import uk.gov.justice.services.core.extension.ServiceComponentScanner;
-import uk.gov.justice.services.core.h2.OpenEjbConfigurationBuilder;
 import uk.gov.justice.services.core.interceptor.InterceptorCache;
 import uk.gov.justice.services.core.interceptor.InterceptorChainEntry;
 import uk.gov.justice.services.core.interceptor.InterceptorChainEntryProvider;
@@ -60,12 +58,14 @@ import uk.gov.justice.services.core.mapping.DefaultSchemaIdMappingCache;
 import uk.gov.justice.services.core.mapping.MediaTypesMappingCacheInitialiser;
 import uk.gov.justice.services.core.mapping.SchemaIdMappingCacheInitialiser;
 import uk.gov.justice.services.core.mapping.SchemaIdMappingObserver;
+import uk.gov.justice.services.core.postgres.OpenEjbConfigurationBuilder;
 import uk.gov.justice.services.core.requester.RequesterProducer;
 import uk.gov.justice.services.core.sender.SenderProducer;
+import uk.gov.justice.services.event.buffer.core.service.BufferInitialisationStrategyProducer;
 import uk.gov.justice.services.event.buffer.core.service.ConsecutiveEventBufferService;
+import uk.gov.justice.services.eventsourcing.source.core.spliterator.AsyncPageDispatch;
 import uk.gov.justice.services.eventsourcing.source.core.spliterator.PagedEventStream;
 import uk.gov.justice.services.eventsourcing.source.core.spliterator.PagedEventStreamSpliterator;
-import uk.gov.justice.services.eventsourcing.source.core.spliterator.ParallelContainerStreamConsumer;
 import uk.gov.justice.services.jdbc.persistence.JdbcRepositoryHelper;
 import uk.gov.justice.services.jdbc.persistence.ViewStoreJdbcDataSourceProvider;
 import uk.gov.justice.services.messaging.DefaultJsonObjectEnvelopeConverter;
@@ -80,6 +80,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
@@ -106,7 +107,7 @@ public class SpliteratorEventBufferIT {
 
     private static final String LIQUIBASE_STREAM_STATUS_CHANGELOG_XML = "liquibase/event-buffer-changelog.xml";
 
-    @Resource(name = "openejb/Resource/viewStore")
+    @Resource(name = "openejb/Resource/frameworkviewstore")
     private DataSource dataSource;
 
     @Inject
@@ -116,7 +117,7 @@ public class SpliteratorEventBufferIT {
     private AbcEventHandler abcEventHandler;
 
     @Inject
-    private ParallelContainerStreamConsumer parallelContainerStreamConsumer;
+    AsyncPageDispatch asyncPageDispatch;
 
     @Module
     @Classes(cdi = true, value = {
@@ -150,7 +151,7 @@ public class SpliteratorEventBufferIT {
             PolicyEvaluator.class,
 
             ConsecutiveEventBufferService.class,
-            AnsiSQLBufferInitialisationStrategyProducer.class,
+            BufferInitialisationStrategyProducer.class,
             EventBufferInterceptor.class,
             LoggerProducer.class,
             EmptySystemUserProvider.class,
@@ -192,7 +193,7 @@ public class SpliteratorEventBufferIT {
 
             MediaTypesMappingCacheInitialiser.class,
             SchemaIdMappingCacheInitialiser.class,
-            ParallelContainerStreamConsumer.class
+            AsyncPageDispatch.class
     })
     public WebApp war() {
         return new WebApp()
@@ -204,6 +205,9 @@ public class SpliteratorEventBufferIT {
     public void init() throws Exception {
         InitialContext initialContext = new InitialContext();
         initialContext.bind("java:/DS.SpliteratorEventBufferIT", dataSource);
+
+        asyncPageDispatch.init();
+
         initDatabase();
     }
 
@@ -211,15 +215,15 @@ public class SpliteratorEventBufferIT {
     public Properties configuration() {
         final Properties properties = OpenEjbConfigurationBuilder.createOpenEjbConfigurationBuilder()
                 .addInitialContext()
-                .addh2ViewStore()
+                .addPostgresqlViewStore()
                 .build();
 
-        properties.put("concurrent/managedExecutorService", "new://Resource?type=ManagedExecutorService");
-        properties.put("concurrent/managedExecutorService.core", "5");
-        properties.put("concurrent/managedExecutorService.max", "10");
-        properties.put("concurrent/managedExecutorService.keepAlive", "4 minutes");
-        properties.put("concurrent/managedExecutorService.queue", "100000");
-
+//        properties.put("concurrent/managedExecutorService", "new://Resource?type=ManagedExecutorService");
+//        properties.put("concurrent/managedExecutorService.core", "5");
+//        properties.put("concurrent/managedExecutorService.max", "10");
+//        properties.put("concurrent/managedExecutorService.keepAlive", "4 minutes");
+//        properties.put("concurrent/managedExecutorService.queue", "100000");
+//
         return properties;
     }
 
@@ -247,9 +251,19 @@ public class SpliteratorEventBufferIT {
 
         final long startTime = System.currentTimeMillis();
 
-        parallelContainerStreamConsumer.stream(
-                stream(pagedEventStreamSpliterator, false),
-                interceptorChainProcessor);
+        try (final Stream<Stream<JsonEnvelope>> streamOfStreams = stream(pagedEventStreamSpliterator, false)) {
+            streamOfStreams.forEach(jsonEnvelopeStream -> {
+                try {
+                    asyncPageDispatch.call(jsonEnvelopeStream, interceptorChainProcessor);
+                } catch (final Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+//        parallelContainerStreamConsumer.stream(
+//                stream(pagedEventStreamSpliterator, false),
+//                interceptorChainProcessor);
 
         final Optional<List<JsonEnvelope>> recordedEnvelopes = pollUntilAllEventsAreHandled(numberOfEventsToProcess);
 
