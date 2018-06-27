@@ -1,5 +1,6 @@
 package uk.gov.justice.subscription.jms.it;
 
+import static java.util.UUID.randomUUID;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -180,7 +181,7 @@ public class JmsEndpointGenerationIT extends AbstractJmsAdapterGenerationIT {
         //which means the message sent to the topic is lost, which in turn causes this test to fail occasionally.
         //Delaying test execution (Thread.sleep) mitigates the issue.
         //TODO: check OpenEJB code and investigate if we can't fix the issue.
-        final String metadataId = "861c9430-7bc6-4bf0-b549-6534394b8d30";
+        final String metadataId = randomUUID().toString();
         final String eventName = "structure.eventbb";
 
         sendEnvelope(metadataId, eventName, structureEventsDestination);
@@ -194,7 +195,7 @@ public class JmsEndpointGenerationIT extends AbstractJmsAdapterGenerationIT {
     @Test
     public void eventListenerDispatcherShouldNotReceiveAnEventUnspecifiedInMessageSelector() throws JMSException {
 
-        final String metadataId = "861c9430-7bc6-4bf0-b549-6534394b8d21";
+        final String metadataId = randomUUID().toString();
         final String commandName = "structure.eventcc";
 
         sendEnvelope(metadataId, commandName, structureEventsDestination);
@@ -204,7 +205,7 @@ public class JmsEndpointGenerationIT extends AbstractJmsAdapterGenerationIT {
     @Test
     public void eventListenerDispatcherShouldReceiveAnEventSpecifiedInMessageSelector() throws JMSException {
 
-        final String metadataId = "861c9430-7bc6-4bf0-b549-6534394b8d21";
+        final String metadataId = randomUUID().toString();
         final String eventName = "people.eventaa";
 
         sendEnvelope(metadataId, eventName, peopleEventsDestination);

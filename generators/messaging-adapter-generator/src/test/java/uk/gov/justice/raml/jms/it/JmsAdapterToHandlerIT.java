@@ -1,6 +1,7 @@
 package uk.gov.justice.raml.jms.it;
 
 import static com.jayway.awaitility.Awaitility.await;
+import static java.util.UUID.randomUUID;
 import static javax.json.Json.createObjectBuilder;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -59,8 +60,8 @@ import uk.gov.justice.services.core.json.JsonSchemaValidator;
 import uk.gov.justice.services.core.mapping.ActionNameToMediaTypesMappingObserver;
 import uk.gov.justice.services.core.mapping.DefaultMediaTypesMappingCache;
 import uk.gov.justice.services.core.mapping.DefaultNameToMediaTypeConverter;
-import uk.gov.justice.services.core.mapping.MediaTypesMappingCacheInitialiser;
 import uk.gov.justice.services.core.mapping.MediaType;
+import uk.gov.justice.services.core.mapping.MediaTypesMappingCacheInitialiser;
 import uk.gov.justice.services.core.mapping.NameToMediaTypeConverter;
 import uk.gov.justice.services.core.mapping.SchemaIdMappingCacheInitialiser;
 import uk.gov.justice.services.core.mapping.SchemaIdMappingObserver;
@@ -219,7 +220,7 @@ public class JmsAdapterToHandlerIT extends AbstractJmsAdapterGenerationIT {
 
     @Test
     public void shouldProcessSupportedEventThroughJsonValidator_EventBufferAndHandler() throws Exception {
-        final String metadataId = "861c9430-7bc6-4bf0-b549-6534b3457c56";
+        final String metadataId = randomUUID().toString();
         Thread.sleep(300);
 
         final String messageStr = "textMessage";
@@ -246,7 +247,7 @@ public class JmsAdapterToHandlerIT extends AbstractJmsAdapterGenerationIT {
 
     @Test
     public void shouldProcessUnSupportedEventThroughEventBufferOnly() throws Exception {
-        final String metadataId = "861c9430-7bc6-4bf0-b549-6534394b8d02";
+        final String metadataId = randomUUID().toString();
         Thread.sleep(300);
 
         sendEnvelope(metadataId, "people.unsuported-event", peopleEventsDestination);

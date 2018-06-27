@@ -1,5 +1,6 @@
 package uk.gov.justice.subscription.jms.it;
 
+import static java.util.UUID.randomUUID;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -185,7 +186,7 @@ public class JmsEndpointGenerationCustomIT extends AbstractJmsAdapterGenerationI
     @Test
     public void eventListenerDispatcherShouldReceiveCustomEventSpecifiedInMessageSelector() throws Exception {
 
-        final String metadataId = "861c9430-7bc6-4bf0-b549-6534b3457c56";
+        final String metadataId = randomUUID().toString();
         final String eventName = "people.eventbb";
 
         sendEnvelope(metadataId, eventName, peopleEventsDestination);
@@ -198,7 +199,7 @@ public class JmsEndpointGenerationCustomIT extends AbstractJmsAdapterGenerationI
     @Test
     public void eventListenerDispatcherShouldReceiveCustomExampleEventSpecifiedInMessageSelector() throws Exception {
 
-        final String metadataId = "861c9430-7bc6-4bf0-b549-6534394b8d61";
+        final String metadataId = randomUUID().toString();
         final String eventName = "example.eventaa";
 
         sendEnvelope(metadataId, eventName, exampleEventDestination);

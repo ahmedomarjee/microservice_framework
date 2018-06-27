@@ -1,6 +1,7 @@
 package uk.gov.justice.subscription.jms.it;
 
 import static com.jayway.awaitility.Awaitility.await;
+import static java.util.UUID.randomUUID;
 import static javax.json.Json.createObjectBuilder;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
@@ -239,7 +240,7 @@ public class JmsAdapterToHandlerIT extends AbstractJmsAdapterGenerationIT {
 
     @Test
     public void shouldProcessSupportedEventThroughJsonValidator_EventBufferAndHandler() throws Exception {
-        final String metadataId = "861c9430-7bc6-4bf0-b549-6534394b8d01";
+        final String metadataId = randomUUID().toString();
 
         final String messageStr = "textMessage";
 
@@ -263,7 +264,7 @@ public class JmsAdapterToHandlerIT extends AbstractJmsAdapterGenerationIT {
 
     @Test
     public void shouldProcessUnSupportedEventThroughEventBufferOnly() throws Exception {
-        final String metadataId = "861c9430-7bc6-4bf0-b549-6534394b8d02";
+        final String metadataId = randomUUID().toString();
 
         sendEnvelope(metadataId, "people.unsuported-event", peopleEventsDestination);
         await().until(() -> bufferService.recordedEnvelopes().size() > 0);
