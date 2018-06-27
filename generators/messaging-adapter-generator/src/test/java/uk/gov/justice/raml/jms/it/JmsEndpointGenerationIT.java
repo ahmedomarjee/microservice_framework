@@ -33,8 +33,8 @@ import uk.gov.justice.services.core.mapping.ActionNameToMediaTypesMappingObserve
 import uk.gov.justice.services.core.mapping.DefaultMediaTypesMappingCache;
 import uk.gov.justice.services.core.mapping.DefaultNameToMediaTypeConverter;
 import uk.gov.justice.services.core.mapping.DefaultSchemaIdMappingCache;
-import uk.gov.justice.services.core.mapping.MediaTypesMappingCacheInitialiser;
 import uk.gov.justice.services.core.mapping.MediaTypeToSchemaIdMapper;
+import uk.gov.justice.services.core.mapping.MediaTypesMappingCacheInitialiser;
 import uk.gov.justice.services.core.mapping.SchemaIdMappingCacheInitialiser;
 import uk.gov.justice.services.core.mapping.SchemaIdMappingObserver;
 import uk.gov.justice.services.event.buffer.api.AllowAllEventFilter;
@@ -58,6 +58,7 @@ import org.apache.openejb.jee.WebApp;
 import org.apache.openejb.junit.ApplicationComposer;
 import org.apache.openejb.testing.Classes;
 import org.apache.openejb.testing.Module;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -136,6 +137,15 @@ public class JmsEndpointGenerationIT extends AbstractJmsAdapterGenerationIT {
     public WebApp war() {
         return new WebApp()
                 .contextRoot("jms-endpoint-test");
+    }
+
+    @Before
+    public void setup() throws Exception {
+        cleanQueue(commandHandlerDestination);
+        cleanQueue(commandControllerDestination);
+        cleanQueue(structureEventsDestination);
+        cleanQueue(peopleEventsDestination);
+        cleanQueue(publicEventsDestination);
     }
 
     @Test

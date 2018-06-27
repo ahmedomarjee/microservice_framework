@@ -8,7 +8,6 @@ import uk.gov.justice.api.subscription.Service2EventListenerPeopleEventEventFilt
 import uk.gov.justice.api.subscription.Service2EventListenerPeopleEventEventValidationInterceptor;
 import uk.gov.justice.api.subscription.Service2EventListenerPeopleEventJmsListener;
 import uk.gov.justice.api.subscription.Service2EventProcessorStructureEventJmsListener;
-import uk.gov.justice.raml.jms.it.AbstractJmsAdapterGenerationIT;
 import uk.gov.justice.services.adapter.messaging.DefaultJmsParameterChecker;
 import uk.gov.justice.services.adapter.messaging.DefaultJmsProcessor;
 import uk.gov.justice.services.adapter.messaging.DefaultSubscriptionJmsProcessor;
@@ -76,6 +75,7 @@ import org.apache.openejb.jee.WebApp;
 import org.apache.openejb.junit.ApplicationComposer;
 import org.apache.openejb.testing.Classes;
 import org.apache.openejb.testing.Module;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -164,6 +164,12 @@ public class JmsEndpointGenerationIT extends AbstractJmsAdapterGenerationIT {
     public WebApp war() {
         return new WebApp()
                 .contextRoot("jms-endpoint-test");
+    }
+
+    @Before
+    public void setup() throws Exception {
+        cleanQueue(peopleEventsDestination);
+        cleanQueue(structureEventsDestination);
     }
 
     @Test

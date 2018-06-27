@@ -106,6 +106,7 @@ import org.apache.openejb.jee.WebApp;
 import org.apache.openejb.junit.ApplicationComposer;
 import org.apache.openejb.testing.Classes;
 import org.apache.openejb.testing.Module;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -219,6 +220,11 @@ public class JmsAdapterToHandlerIT extends AbstractJmsAdapterGenerationIT {
     public WebApp war() {
         return new WebApp()
                 .contextRoot("jms-adapter-to-aaEventHandler-test");
+    }
+
+    @Before
+    public void setup() throws Exception {
+        cleanQueue(peopleEventsDestination);
     }
 
     public TextMessage textMessage(final String message, final Session session, final String eventName) {

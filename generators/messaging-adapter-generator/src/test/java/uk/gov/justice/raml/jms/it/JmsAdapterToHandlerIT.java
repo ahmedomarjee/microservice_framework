@@ -93,6 +93,7 @@ import org.apache.openejb.jee.WebApp;
 import org.apache.openejb.junit.ApplicationComposer;
 import org.apache.openejb.testing.Classes;
 import org.apache.openejb.testing.Module;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -100,6 +101,7 @@ import org.junit.runner.RunWith;
 public class JmsAdapterToHandlerIT extends AbstractJmsAdapterGenerationIT {
 
     private static final String PEOPLE_EVENT_AA = "people.eventaa";
+
     @Resource(name = "people.event")
     private Topic peopleEventsDestination;
 
@@ -198,6 +200,11 @@ public class JmsAdapterToHandlerIT extends AbstractJmsAdapterGenerationIT {
     public WebApp war() {
         return new WebApp()
                 .contextRoot("jms-adapter-to-aaEventHandler-test");
+    }
+
+    @Before
+    public void setup() throws Exception {
+        cleanQueue(peopleEventsDestination);
     }
 
     public TextMessage textMessage(final String message, final Session session, final String eventName) {

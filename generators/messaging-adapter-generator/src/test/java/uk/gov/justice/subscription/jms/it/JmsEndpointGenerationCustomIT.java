@@ -13,7 +13,6 @@ import uk.gov.justice.api.subscription.CustomEventListenerPeopleEventEventFilter
 import uk.gov.justice.api.subscription.CustomEventListenerPeopleEventEventListenerInterceptorChainProvider;
 import uk.gov.justice.api.subscription.CustomEventListenerPeopleEventEventValidationInterceptor;
 import uk.gov.justice.api.subscription.CustomEventListenerPeopleEventJmsListener;
-import uk.gov.justice.raml.jms.it.AbstractJmsAdapterGenerationIT;
 import uk.gov.justice.services.adapter.messaging.DefaultJmsParameterChecker;
 import uk.gov.justice.services.adapter.messaging.DefaultJmsProcessor;
 import uk.gov.justice.services.adapter.messaging.DefaultSubscriptionJmsProcessor;
@@ -80,6 +79,7 @@ import org.apache.openejb.jee.WebApp;
 import org.apache.openejb.junit.ApplicationComposer;
 import org.apache.openejb.testing.Classes;
 import org.apache.openejb.testing.Module;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -175,6 +175,12 @@ public class JmsEndpointGenerationCustomIT extends AbstractJmsAdapterGenerationI
 
     @Resource(name = "example.event")
     private Topic exampleEventDestination;
+
+    @Before
+    public void setup() throws Exception {
+        cleanQueue(peopleEventsDestination);
+        cleanQueue(exampleEventDestination);
+    }
 
     @Test
     public void eventListenerDispatcherShouldReceiveCustomEventSpecifiedInMessageSelector() throws Exception {

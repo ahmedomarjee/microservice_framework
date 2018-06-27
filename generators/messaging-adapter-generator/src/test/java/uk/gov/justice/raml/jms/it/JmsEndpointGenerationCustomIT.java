@@ -57,6 +57,7 @@ import org.apache.openejb.jee.WebApp;
 import org.apache.openejb.junit.ApplicationComposer;
 import org.apache.openejb.testing.Classes;
 import org.apache.openejb.testing.Module;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -65,6 +66,7 @@ import org.junit.runner.RunWith;
  */
 @RunWith(ApplicationComposer.class)
 public class JmsEndpointGenerationCustomIT extends AbstractJmsAdapterGenerationIT {
+
     @Module
     @Classes(cdi = true, value = {
             DefaultJmsProcessor.class,
@@ -132,6 +134,12 @@ public class JmsEndpointGenerationCustomIT extends AbstractJmsAdapterGenerationI
 
     @Resource(name = "example.event")
     private Topic exampleEventDestination;
+
+    @Before
+    public void setup() throws Exception {
+        cleanQueue(peopleEventsDestination);
+        cleanQueue(exampleEventDestination);
+    }
 
     @Test
     public void eventListenerDispatcherShouldReceiveCustomEventSpecifiedInMessageSelector() throws Exception {
