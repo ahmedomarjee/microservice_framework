@@ -12,6 +12,7 @@ import static uk.gov.justice.subscription.domain.builders.SubscriptionBuilder.su
 import uk.gov.justice.services.core.cdi.QualifierAnnotationExtractor;
 import uk.gov.justice.services.core.interceptor.InterceptorChainProcessor;
 import uk.gov.justice.services.core.interceptor.InterceptorChainProcessorProducer;
+import uk.gov.justice.services.event.buffer.api.EventBufferService;
 import uk.gov.justice.services.eventsourcing.source.core.EventSource;
 import uk.gov.justice.services.subscription.SubscriptionManager;
 import uk.gov.justice.services.subscription.annotation.SubscriptionName;
@@ -26,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.slf4j.Logger;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SubscriptionManagerProducerTest {
@@ -47,6 +49,12 @@ public class SubscriptionManagerProducerTest {
 
     @Mock
     private QualifierAnnotationExtractor qualifierAnnotationExtractor;
+
+    @Mock
+    private EventBufferService eventBufferService;
+
+    @Mock
+    private Logger logger;
 
     @InjectMocks
     private SubscriptionManagerProducer subscriptionManagerProducer;
