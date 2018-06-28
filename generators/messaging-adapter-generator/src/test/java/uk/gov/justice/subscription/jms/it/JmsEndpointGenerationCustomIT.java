@@ -165,7 +165,7 @@ public class JmsEndpointGenerationCustomIT extends AbstractJmsAdapterGenerationI
     })
     public WebApp war() {
         return new WebApp()
-                .contextRoot("jms-endpoint-test");
+                .contextRoot("custom-jms-endpoint-test");
     }
 
     @Inject

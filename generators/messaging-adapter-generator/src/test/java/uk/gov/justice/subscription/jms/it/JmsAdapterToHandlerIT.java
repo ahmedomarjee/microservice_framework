@@ -12,11 +12,7 @@ import static org.junit.Assert.assertTrue;
 import static uk.gov.justice.services.core.annotation.Component.EVENT_LISTENER;
 import static uk.gov.justice.services.messaging.jms.HeaderConstants.JMS_HEADER_CPPNAME;
 
-import uk.gov.justice.api.subscription.Service2EventListenerPeopleEventEventFilter;
-import uk.gov.justice.api.subscription.Service2EventListenerPeopleEventEventFilterInterceptor;
-import uk.gov.justice.api.subscription.Service2EventListenerPeopleEventEventListenerInterceptorChainProvider;
-import uk.gov.justice.api.subscription.Service2EventListenerPeopleEventEventValidationInterceptor;
-import uk.gov.justice.api.subscription.Service2EventListenerPeopleEventJmsListener;
+import uk.gov.justice.api.subscription.*;
 import uk.gov.justice.services.adapter.messaging.DefaultJmsParameterChecker;
 import uk.gov.justice.services.adapter.messaging.DefaultJmsProcessor;
 import uk.gov.justice.services.adapter.messaging.DefaultSubscriptionJmsProcessor;
@@ -117,14 +113,14 @@ public class JmsAdapterToHandlerIT extends AbstractJmsAdapterGenerationIT {
 
     private static final String PEOPLE_EVENT_AA = "people.eventaa";
 
-    @Resource(name = "people.event")
+    @Resource(name = "another.people.event")
     private Topic peopleEventsDestination;
 
     @Inject
-    private Service2EventListenerPeopleEventEventFilter recordingEventListenerEventFilter;
+    private Service2EventListenerAnotherPeopleEventEventFilter recordingEventListenerEventFilter;
 
     @Inject
-    private Service2EventListenerPeopleEventEventValidationInterceptor eventListenerValidationInterceptor;
+    private Service2EventListenerAnotherPeopleEventEventValidationInterceptor eventListenerValidationInterceptor;
 
     @Inject
     private RecordingEventAAHandler aaEventHandler;
@@ -138,11 +134,11 @@ public class JmsAdapterToHandlerIT extends AbstractJmsAdapterGenerationIT {
     @Module
     @Classes(cdi = true, value = {
             TestService2EventListenerPeopleEventJmsListener.class,
-            Service2EventListenerPeopleEventEventFilter.class,
-            Service2EventListenerPeopleEventEventFilterInterceptor.class,
-            Service2EventListenerPeopleEventEventListenerInterceptorChainProvider.class,
-            Service2EventListenerPeopleEventEventValidationInterceptor.class,
-            Service2EventListenerPeopleEventJmsListener.class,
+            Service2EventListenerAnotherPeopleEventEventFilter.class,
+            Service2EventListenerAnotherPeopleEventEventFilterInterceptor.class,
+            Service2EventListenerAnotherPeopleEventEventListenerInterceptorChainProvider.class,
+            Service2EventListenerAnotherPeopleEventEventValidationInterceptor.class,
+            Service2EventListenerAnotherPeopleEventJmsListener.class,
 
             RecordingEventAAHandler.class,
             RecordingJsonSchemaValidator.class,
@@ -331,7 +327,7 @@ public class JmsAdapterToHandlerIT extends AbstractJmsAdapterGenerationIT {
     }
 
     @ApplicationScoped
-    public static class TestService2EventListenerPeopleEventJmsListener extends Service2EventListenerPeopleEventJmsListener {
+    public static class TestService2EventListenerPeopleEventJmsListener extends Service2EventListenerAnotherPeopleEventJmsListener {
 
     }
 

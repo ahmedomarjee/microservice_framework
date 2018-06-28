@@ -5,9 +5,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import uk.gov.justice.api.subscription.Service2EventListenerPeopleEventEventFilter;
-import uk.gov.justice.api.subscription.Service2EventListenerPeopleEventEventValidationInterceptor;
-import uk.gov.justice.api.subscription.Service2EventListenerPeopleEventJmsListener;
+import uk.gov.justice.api.subscription.Service2EventListenerAnotherPeopleEventEventFilter;
+import uk.gov.justice.api.subscription.Service2EventListenerAnotherPeopleEventEventValidationInterceptor;
+import uk.gov.justice.api.subscription.Service2EventListenerAnotherPeopleEventJmsListener;
 import uk.gov.justice.api.subscription.Service2EventProcessorStructureEventJmsListener;
 import uk.gov.justice.services.adapter.messaging.DefaultJmsParameterChecker;
 import uk.gov.justice.services.adapter.messaging.DefaultJmsProcessor;
@@ -92,16 +92,16 @@ public class JmsEndpointGenerationIT extends AbstractJmsAdapterGenerationIT {
     @Resource(name = "structure.event")
     private Topic structureEventsDestination;
 
-    @Resource(name = "people.event")
+    @Resource(name = "another.people.event")
     private Topic peopleEventsDestination;
 
     @Module
     @Classes(cdi = true, value = {
             DefaultJmsProcessor.class,
             Service2EventProcessorStructureEventJmsListener.class,
-            Service2EventListenerPeopleEventJmsListener.class,
-            Service2EventListenerPeopleEventEventFilter.class,
-            Service2EventListenerPeopleEventEventValidationInterceptor.class,
+            Service2EventListenerAnotherPeopleEventJmsListener.class,
+            Service2EventListenerAnotherPeopleEventEventFilter.class,
+            Service2EventListenerAnotherPeopleEventEventValidationInterceptor.class,
 
             RecordingJsonSchemaValidator.class,
 
@@ -164,7 +164,7 @@ public class JmsEndpointGenerationIT extends AbstractJmsAdapterGenerationIT {
     })
     public WebApp war() {
         return new WebApp()
-                .contextRoot("jms-endpoint-test");
+                .contextRoot("subscription.JmsEndpointGenerationIT");
     }
 
     @Before
