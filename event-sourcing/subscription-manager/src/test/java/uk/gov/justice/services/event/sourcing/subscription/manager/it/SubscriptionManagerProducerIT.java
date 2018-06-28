@@ -1,4 +1,4 @@
-package uk.gov.justice.services.event.sourcing.subscription.it;
+package uk.gov.justice.services.event.sourcing.subscription.manager.it;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -14,8 +14,8 @@ import uk.gov.justice.services.core.cdi.QualifierAnnotationExtractor;
 import uk.gov.justice.services.core.dispatcher.DispatcherFactory;
 import uk.gov.justice.services.core.dispatcher.EnvelopePayloadTypeConverter;
 import uk.gov.justice.services.core.dispatcher.JsonEnvelopeRepacker;
-import uk.gov.justice.services.event.sourcing.subscription.DefaultSubscriptionManager;
-import uk.gov.justice.services.event.sourcing.subscription.SubscriptionManagerProducer;
+import uk.gov.justice.services.event.sourcing.subscription.manager.DefaultSubscriptionManager;
+import uk.gov.justice.services.event.sourcing.subscription.manager.SubscriptionManagerProducer;
 import uk.gov.justice.services.eventsourcing.source.core.EventSource;
 import uk.gov.justice.services.eventsourcing.source.core.annotation.EventSourceName;
 import uk.gov.justice.services.subscription.SubscriptionManager;

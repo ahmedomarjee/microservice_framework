@@ -1,4 +1,4 @@
-package uk.gov.justice.services.event.sourcing.subscription;
+package uk.gov.justice.services.event.sourcing.subscription.manager;
 
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
@@ -13,8 +13,6 @@ import uk.gov.justice.services.subscription.SubscriptionManager;
 import uk.gov.justice.subscription.domain.subscriptiondescriptor.Subscription;
 import uk.gov.justice.subscription.domain.subscriptiondescriptor.SubscriptionDescriptorDefinition;
 import uk.gov.justice.subscription.registry.SubscriptionDescriptorDefinitionRegistry;
-
-import java.util.stream.Stream;
 
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.InjectionPoint;
