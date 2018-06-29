@@ -7,6 +7,7 @@ import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static uk.gov.justice.services.core.annotation.Component.EVENT_LISTENER;
 import static uk.gov.justice.subscription.domain.builders.SubscriptionBuilder.subscription;
 
 import uk.gov.justice.services.core.cdi.QualifierAnnotationExtractor;
@@ -73,10 +74,10 @@ public class SubscriptionManagerProducerTest {
                 .withName("subscriptionName")
                 .build();
 
-        final String componentName = "eventListener";
         when(subscriptionDescriptorRegistry.getSubscriptionFor(subscription.getName())).thenReturn(subscription);
+        when(subscriptionDescriptorRegistry.findComponentNameBy(subscription.getName())).thenReturn(EVENT_LISTENER);
         when(qualifierAnnotationExtractor.getFrom(injectionPoint, SubscriptionName.class)).thenReturn(subscriptionName);
-        when(interceptorChainProcessorProducer.produceProcessor(componentName)).thenReturn(interceptorChainProcessor);
+        when(interceptorChainProcessorProducer.produceProcessor(EVENT_LISTENER)).thenReturn(interceptorChainProcessor);
         when(subscriptionName.value()).thenReturn("subscriptionName");
         when(subscriptionDescriptorRegistry.getSubscriptionFor(subscriptionName.value())).thenReturn(subscription);
 

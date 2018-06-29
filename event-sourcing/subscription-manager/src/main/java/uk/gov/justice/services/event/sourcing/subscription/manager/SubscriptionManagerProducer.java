@@ -1,6 +1,7 @@
 package uk.gov.justice.services.event.sourcing.subscription.manager;
 
 import static java.lang.String.format;
+import static uk.gov.justice.services.core.annotation.Component.EVENT_LISTENER;
 
 import uk.gov.justice.services.core.cdi.QualifierAnnotationExtractor;
 import uk.gov.justice.services.core.interceptor.InterceptorChainProcessor;
@@ -67,11 +68,19 @@ public class SubscriptionManagerProducer {
         final InterceptorChainProcessor interceptorChainProcessor = interceptorChainProcessorProducer.produceProcessor(componentName);
         final EventSource eventSource = getEventSource(subscription.getEventSourceName());
 
+        if (componentName.contains(EVENT_LISTENER)) {
+            return new DefaultSubscriptionManager(
+                    subscription,
+                    eventSource,
+                    interceptorChainProcessor,
+                    eventBufferService,
+                    logger);
+        }
+
         return new DefaultSubscriptionManager(
                 subscription,
                 eventSource,
                 interceptorChainProcessor,
-                eventBufferService,
                 logger);
     }
 
@@ -79,6 +88,7 @@ public class SubscriptionManagerProducer {
         final EventSourceNameQualifier eventSourceNameQualifier = new EventSourceNameQualifier(eventSourceName);
         return eventSourceInstance.select(eventSourceNameQualifier).get();
     }
+
 }
 
 
