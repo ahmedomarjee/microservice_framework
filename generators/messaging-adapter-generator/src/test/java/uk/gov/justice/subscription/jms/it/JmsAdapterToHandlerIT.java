@@ -27,7 +27,6 @@ import uk.gov.justice.services.common.converter.ObjectToJsonValueConverter;
 import uk.gov.justice.services.common.converter.StringToJsonObjectConverter;
 import uk.gov.justice.services.common.converter.jackson.ObjectMapperProducer;
 import uk.gov.justice.services.common.util.UtcClock;
-import uk.gov.justice.services.components.event.listener.interceptors.EventBufferInterceptor;
 import uk.gov.justice.services.core.accesscontrol.AccessControlFailureMessageGenerator;
 import uk.gov.justice.services.core.accesscontrol.AllowAllPolicyEvaluator;
 import uk.gov.justice.services.core.accesscontrol.DefaultAccessControlService;
@@ -150,7 +149,6 @@ public class JmsAdapterToHandlerIT extends AbstractJmsAdapterGenerationIT {
             InterceptorChainProcessor.class,
             InterceptorCache.class,
             InterceptorChainObserver.class,
-            EventBufferInterceptor.class,
 
             ServiceComponentScanner.class,
             RequesterProducer.class,
