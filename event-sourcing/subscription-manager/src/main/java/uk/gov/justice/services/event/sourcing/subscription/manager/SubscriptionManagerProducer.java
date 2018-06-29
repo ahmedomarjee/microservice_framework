@@ -71,7 +71,8 @@ public class SubscriptionManagerProducer {
                 subscription,
                 eventSource,
                 interceptorChainProcessor,
-                eventBufferService);
+                eventBufferService,
+                logger);
     }
 
     private EventSource getEventSource(final String eventSourceName) {
