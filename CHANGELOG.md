@@ -28,6 +28,7 @@ on [Keep a CHANGELOG](http://keepachangelog.com/). This project adheres to
 - Integration Tests now use a running local instance of Postgres, rather than using an in memory database
 - Updated common-bom version to 1.27.0 to fix apache tika security issues
 - Moved EventBuffer into DefaultSubscriptionManager
+- Add SchemaCatalogResolver to JsonSchemaLoader for resolving file base schemas with the schema catalog
 
 ## [4.0.0] - 2018-03-09
 
