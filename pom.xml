@@ -28,7 +28,6 @@
         <module>messaging</module>
         <module>core</module>
         <module>components</module>
-        <module>event-sourcing</module>
         <module>common</module>
         <module>persistence</module>
         <module>generators</module>
