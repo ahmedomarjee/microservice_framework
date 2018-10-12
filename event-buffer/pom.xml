@@ -9,11 +9,14 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>interceptors</artifactId>
+    <artifactId>event-buffer</artifactId>
     <packaging>pom</packaging>
 
     <modules>
-        <module>event-listener-interceptors</module>
+        <module>event-buffer-liquibase</module>
+        <module>event-buffer-core</module>
+        <module>event-buffer-api</module>
     </modules>
+
 
 </project>

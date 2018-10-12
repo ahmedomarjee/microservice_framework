@@ -28,13 +28,13 @@
         <module>messaging</module>
         <module>core</module>
         <module>components</module>
+        <module>event-sourcing</module>
         <module>common</module>
         <module>persistence</module>
         <module>generators</module>
         <module>test-utils</module>
         <module>framework-bom</module>
-        <module>aggregate</module>
-        <module>aggregate-snapshot</module>
+        <module>event-buffer</module>
         <module>raml-lint-check</module>
         <module>wildfly-vfs</module>
         <module>common-rest</module>
